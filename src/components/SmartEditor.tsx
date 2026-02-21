@@ -42,15 +42,35 @@ export function SmartEditor({
   text, setText, enhancedText, showDiff, highlights, isAnalyzed, wordCount, readingTime
 }: SmartEditorProps) {
   const [selectedHighlight, setSelectedHighlight] = useState<Highlight | null>(null);
+  const [dismissedIndexes, setDismissedIndexes] = useState<Set<number>>(new Set());
   const [view, setView] = useState<"edit" | "preview" | "diff">("edit");
 
   const currentView = showDiff ? "diff" : view;
 
+  const activeHighlights = useMemo(() =>
+    highlights.filter((_, i) => !dismissedIndexes.has(i)),
+    [highlights, dismissedIndexes]
+  );
+
   const highlightCounts = useMemo(() => {
     const counts = { grammar: 0, clarity: 0, style: 0, consistency: 0 };
-    highlights.forEach(h => counts[h.type]++);
+    activeHighlights.forEach(h => counts[h.type]++);
     return counts;
-  }, [highlights]);
+  }, [activeHighlights]);
+
+  const handleAccept = (h: Highlight) => {
+    const newText = text.replace(h.original, h.suggestion);
+    setText(newText);
+    const idx = highlights.indexOf(h);
+    setDismissedIndexes(prev => new Set(prev).add(idx));
+    setSelectedHighlight(null);
+  };
+
+  const handleReject = (h: Highlight) => {
+    const idx = highlights.indexOf(h);
+    setDismissedIndexes(prev => new Set(prev).add(idx));
+    setSelectedHighlight(null);
+  };
 
   return (
     <motion.div
@@ -98,7 +118,7 @@ export function SmartEditor({
       </div>
 
       {/* Suggestions Bar */}
-      {isAnalyzed && highlights.length > 0 && currentView === "edit" && (
+      {isAnalyzed && activeHighlights.length > 0 && currentView === "edit" && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
@@ -106,9 +126,9 @@ export function SmartEditor({
         >
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-3.5 h-3.5 text-warning shrink-0" />
-            <span className="text-xs text-muted-foreground shrink-0 mr-1">{highlights.length} suggestions:</span>
+            <span className="text-xs text-muted-foreground shrink-0 mr-1">{activeHighlights.length} suggestions:</span>
             <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-thin">
-              {highlights.map((h, i) => (
+              {activeHighlights.map((h, i) => (
                 <button
                   key={i}
                   onClick={() => setSelectedHighlight(selectedHighlight === h ? null : h)}
@@ -146,10 +166,10 @@ export function SmartEditor({
                   <p className="text-muted-foreground text-xs">{selectedHighlight.reason}</p>
                 </div>
                 <div className="flex gap-2 mt-2">
-                  <Button size="sm" className="gap-1 bg-accent text-accent-foreground hover:bg-accent/90 text-xs h-7">
+                  <Button size="sm" className="gap-1 bg-accent text-accent-foreground hover:bg-accent/90 text-xs h-7" onClick={() => handleAccept(selectedHighlight)}>
                     <Check className="w-3 h-3" /> Accept
                   </Button>
-                  <Button size="sm" variant="outline" className="gap-1 text-xs h-7" onClick={() => setSelectedHighlight(null)}>
+                  <Button size="sm" variant="outline" className="gap-1 text-xs h-7" onClick={() => handleReject(selectedHighlight)}>
                     <X className="w-3 h-3" /> Reject
                   </Button>
                 </div>
