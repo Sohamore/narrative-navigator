@@ -97,6 +97,68 @@ export function SmartEditor({
         </div>
       </div>
 
+      {/* Suggestions Bar */}
+      {isAnalyzed && highlights.length > 0 && currentView === "edit" && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className="border-b bg-muted/30 px-4 py-2 overflow-x-auto"
+        >
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-3.5 h-3.5 text-warning shrink-0" />
+            <span className="text-xs text-muted-foreground shrink-0 mr-1">{highlights.length} suggestions:</span>
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-thin">
+              {highlights.map((h, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSelectedHighlight(selectedHighlight === h ? null : h)}
+                  className={`shrink-0 text-xs px-3 py-1.5 rounded-md border transition-all hover:shadow-sm ${typeColors[h.type]} ${selectedHighlight === h ? "ring-2 ring-primary/30" : ""}`}
+                >
+                  <span className="line-clamp-1">"{h.original}"</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Suggestion detail */}
+          <AnimatePresence>
+            {selectedHighlight && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-2 p-3 rounded-lg bg-card border shadow-sm"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <Badge className={typeColors[selectedHighlight.type]}>
+                    {typeLabels[selectedHighlight.type]}
+                  </Badge>
+                  <button onClick={() => setSelectedHighlight(null)}>
+                    <X className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </div>
+                <div className="space-y-1.5 text-sm">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-destructive line-through">{selectedHighlight.original}</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span className="text-accent font-medium">{selectedHighlight.suggestion}</span>
+                  </div>
+                  <p className="text-muted-foreground text-xs">{selectedHighlight.reason}</p>
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <Button size="sm" className="gap-1 bg-accent text-accent-foreground hover:bg-accent/90 text-xs h-7">
+                    <Check className="w-3 h-3" /> Accept
+                  </Button>
+                  <Button size="sm" variant="outline" className="gap-1 text-xs h-7" onClick={() => setSelectedHighlight(null)}>
+                    <X className="w-3 h-3" /> Reject
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
+
       {/* Editor Area */}
       <div className="flex-1 relative overflow-hidden">
         {currentView === "diff" ? (
@@ -110,66 +172,7 @@ export function SmartEditor({
               className="w-full h-full p-6 resize-none bg-transparent text-foreground text-[15px] leading-relaxed focus:outline-none scrollbar-thin font-sans placeholder:text-muted-foreground/50"
               spellCheck={false}
             />
-
-            {/* Suggestion popup */}
-            <AnimatePresence>
-              {selectedHighlight && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute bottom-6 left-6 right-6 panel p-4 shadow-lg z-10"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <Badge className={typeColors[selectedHighlight.type]}>
-                      {typeLabels[selectedHighlight.type]}
-                    </Badge>
-                    <button onClick={() => setSelectedHighlight(null)}>
-                      <X className="w-4 h-4 text-muted-foreground" />
-                    </button>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="text-destructive line-through">{selectedHighlight.original}</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                      <span className="text-accent font-medium">{selectedHighlight.suggestion}</span>
-                    </div>
-                    <p className="text-muted-foreground text-xs">{selectedHighlight.reason}</p>
-                  </div>
-                  <div className="flex gap-2 mt-3">
-                    <Button size="sm" className="gap-1 bg-accent text-accent-foreground hover:bg-accent/90 text-xs h-7">
-                      <Check className="w-3 h-3" /> Accept
-                    </Button>
-                    <Button size="sm" variant="outline" className="gap-1 text-xs h-7" onClick={() => setSelectedHighlight(null)}>
-                      <X className="w-3 h-3" /> Reject
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
-        )}
-
-        {/* Highlight legend floating */}
-        {isAnalyzed && highlights.length > 0 && currentView === "edit" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute top-4 right-4 space-y-1"
-          >
-            {highlights.slice(0, 5).map((h, i) => (
-              <button
-                key={i}
-                onClick={() => setSelectedHighlight(h)}
-                className={`block w-full text-left text-xs px-3 py-1.5 rounded-md border transition-all hover:shadow-sm ${typeColors[h.type]}`}
-              >
-                <span className="line-clamp-1">"{h.original}"</span>
-              </button>
-            ))}
-            {highlights.length > 5 && (
-              <span className="text-[10px] text-muted-foreground px-3">+{highlights.length - 5} more</span>
-            )}
-          </motion.div>
         )}
 
         {/* Empty state */}
