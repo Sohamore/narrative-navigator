@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   Pen, Sliders, BarChart3, Upload, Download, History,
   GitCompare, Wand2, Search, RotateCcw, ChevronDown,
-  FileText, Sparkles, Zap
+  FileText, Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -39,23 +39,6 @@ const getCreativityLabel = (v: number) => {
   return "Creative rewrite";
 };
 
-const getCreativityColor = (v: number) => {
-  if (v <= 30) return "text-muted-foreground";
-  if (v <= 60) return "text-primary";
-  if (v <= 80) return "text-accent";
-  return "text-warning";
-};
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.06 } },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 8 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35 } },
-};
-
 export function WritingSidebar({
   onAnalyze, onEnhance, onShowDiff, onReset,
   writingMode, setWritingMode,
@@ -65,46 +48,46 @@ export function WritingSidebar({
 }: WritingSidebarProps) {
   return (
     <motion.aside
-      initial="hidden"
-      animate="visible"
-      variants={stagger}
-      className="w-72 border-r glass flex flex-col h-full overflow-y-auto scrollbar-thin"
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.4 }}
+      className="w-72 border-r bg-card flex flex-col h-full overflow-y-auto scrollbar-thin"
     >
       {/* Header */}
-      <motion.div variants={fadeUp} className="p-4 border-b border-border/50">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow-sm">
-            <Sparkles className="w-4.5 h-4.5 text-primary-foreground" />
+      <div className="p-4 border-b">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="font-display font-semibold text-sm tracking-tight">AI Writer</h2>
-            <p className="text-[11px] text-muted-foreground">Script Enhancement</p>
+            <h2 className="font-semibold text-sm">AI Writer</h2>
+            <p className="text-xs text-muted-foreground">Script Enhancement</p>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       <div className="p-4 space-y-5 flex-1">
         {/* Writing Mode */}
-        <motion.div variants={fadeUp} className="space-y-2.5">
-          <label className="section-label">
-            <Pen className="w-3.5 h-3.5 text-primary" /> Writing Mode
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+            <Pen className="w-3.5 h-3.5" /> Writing Mode
           </label>
           <Select value={writingMode} onValueChange={setWritingMode}>
-            <SelectTrigger className="bg-background/50 border-border/60 hover:bg-background transition-colors">
+            <SelectTrigger className="bg-background">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="glass border z-50">
+            <SelectContent className="bg-card border z-50">
               {writingModes.map(m => (
                 <SelectItem key={m} value={m.toLowerCase()}>{m}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-        </motion.div>
+        </div>
 
         {/* Creativity Slider */}
-        <motion.div variants={fadeUp} className="space-y-3">
-          <label className="section-label">
-            <Sliders className="w-3.5 h-3.5 text-primary" /> Creativity
+        <div className="space-y-3">
+          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+            <Sliders className="w-3.5 h-3.5" /> Creativity
           </label>
           <Slider
             value={[creativity]}
@@ -114,71 +97,64 @@ export function WritingSidebar({
             className="py-1"
           />
           <div className="flex justify-between items-center">
-            <span className={`text-sm font-semibold tabular-nums ${getCreativityColor(creativity)}`}>
-              {creativity}
-            </span>
-            <Badge variant="secondary" className="text-[10px] font-medium px-2.5 py-0.5 rounded-full">
-              {getCreativityLabel(creativity)}
-            </Badge>
+            <span className="text-xs text-muted-foreground">{creativity}</span>
+            <Badge variant="secondary" className="text-xs">{getCreativityLabel(creativity)}</Badge>
           </div>
-        </motion.div>
+        </div>
 
         {/* Enhancement Level */}
-        <motion.div variants={fadeUp} className="space-y-2.5">
-          <label className="section-label">
-            <BarChart3 className="w-3.5 h-3.5 text-primary" /> Enhancement Level
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+            <BarChart3 className="w-3.5 h-3.5" /> Enhancement Level
           </label>
           <div className="grid grid-cols-3 gap-1.5">
             {["conservative", "moderate", "aggressive"].map(level => (
               <button
                 key={level}
                 onClick={() => setEnhancementLevel(level)}
-                className={`text-[11px] py-2 px-2 rounded-lg border transition-all duration-200 capitalize font-medium ${
+                className={`text-xs py-1.5 px-2 rounded-md border transition-all capitalize ${
                   enhancementLevel === level
-                    ? "bg-primary text-primary-foreground border-primary shadow-glow-sm scale-[1.02]"
-                    : "bg-background/50 text-muted-foreground border-border/60 hover:bg-muted hover:text-foreground hover:border-border"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-foreground border-border hover:bg-muted"
                 }`}
               >
                 {level}
               </button>
             ))}
           </div>
-        </motion.div>
+        </div>
 
-        <Separator className="opacity-50" />
+        <Separator />
 
         {/* Document Tools */}
-        <motion.div variants={fadeUp} className="space-y-2.5">
-          <label className="section-label">
-            <FileText className="w-3.5 h-3.5 text-primary" /> Document Tools
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+            <FileText className="w-3.5 h-3.5" /> Document Tools
           </label>
           <div className="space-y-1.5">
-            {[
-              { icon: Upload, label: "Upload .txt" },
-              { icon: Download, label: "Download Enhanced" },
-              { icon: History, label: "Version History" },
-              { icon: GitCompare, label: "Compare Versions" },
-            ].map(({ icon: Icon, label }) => (
-              <Button
-                key={label}
-                variant="outline"
-                size="sm"
-                className="btn-action text-xs bg-background/30 border-border/50 hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all duration-200 group"
-              >
-                <Icon className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" /> {label}
-              </Button>
-            ))}
+            <Button variant="outline" size="sm" className="btn-action text-xs">
+              <Upload className="w-3.5 h-3.5" /> Upload .txt
+            </Button>
+            <Button variant="outline" size="sm" className="btn-action text-xs">
+              <Download className="w-3.5 h-3.5" /> Download Enhanced
+            </Button>
+            <Button variant="outline" size="sm" className="btn-action text-xs">
+              <History className="w-3.5 h-3.5" /> Version History
+            </Button>
+            <Button variant="outline" size="sm" className="btn-action text-xs">
+              <GitCompare className="w-3.5 h-3.5" /> Compare Versions
+            </Button>
           </div>
-        </motion.div>
+        </div>
 
-        <Separator className="opacity-50" />
+        <Separator />
 
         {/* Actions */}
-        <motion.div variants={fadeUp} className="space-y-2.5">
+        <div className="space-y-2">
           <Button
             onClick={onAnalyze}
             disabled={isAnalyzing}
-            className="w-full gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-glow-sm hover:shadow-glow transition-all duration-300 btn-glow font-medium"
+            className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
           >
             {isAnalyzing ? (
               <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
@@ -190,7 +166,7 @@ export function WritingSidebar({
           <Button
             onClick={onEnhance}
             disabled={isEnhancing}
-            className="w-full gap-2 bg-gradient-to-r from-accent to-accent/80 text-accent-foreground shadow-glow-accent hover:shadow-glow-accent transition-all duration-300 btn-glow font-medium"
+            className="w-full gap-2 bg-accent text-accent-foreground hover:bg-accent/90"
           >
             {isEnhancing ? (
               <div className="w-4 h-4 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin" />
@@ -200,33 +176,23 @@ export function WritingSidebar({
             {isEnhancing ? "Enhancing…" : "Enhance"}
           </Button>
           <div className="grid grid-cols-2 gap-1.5">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onShowDiff}
-              className="gap-1 text-xs hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all duration-200"
-            >
+            <Button variant="outline" size="sm" onClick={onShowDiff} className="gap-1 text-xs">
               <GitCompare className="w-3.5 h-3.5" /> Diff
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onReset}
-              className="gap-1 text-xs hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30 transition-all duration-200"
-            >
+            <Button variant="outline" size="sm" onClick={onReset} className="gap-1 text-xs">
               <RotateCcw className="w-3.5 h-3.5" /> Reset
             </Button>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Footer */}
-      <motion.div variants={fadeUp} className="p-4 border-t border-border/50">
-        <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
-          <div className="status-dot" />
-          <span className="font-medium">AI Engine Ready</span>
+      <div className="p-4 border-t">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+          AI Engine Ready
         </div>
-      </motion.div>
+      </div>
     </motion.aside>
   );
 }
